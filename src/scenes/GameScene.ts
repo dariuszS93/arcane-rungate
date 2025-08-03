@@ -5,16 +5,6 @@ import Phaser, {Scene} from 'phaser';
 import { Enemy } from '../characters/Enemy';
 import Player from '../characters/Player';
 
-// declare global {
-//     interface Phaser.Scene {
-//         player: Player;
-//         enemies: Phaser.Physics.Arcade.Group;
-//         cursors: Phaser.Types.Input.Keyboard.CursorKeys;
-//         shiftKey: Phaser.Input.Keyboard.Key;
-//     }
-// }
-
-// let player: Phaser.Types.Physics.Arcade.SpriteWithDynamicBody;
 let player: Player;
 let coins: Phaser.Physics.Arcade.Group;
 let score = 0;
