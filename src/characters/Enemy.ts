@@ -1,8 +1,6 @@
-import Phaser from 'phaser';
-
 export class Enemy extends Phaser.Physics.Arcade.Sprite {
-    private minX: number;
-    private maxX: number;
+    public minX: number;
+    public maxX: number;
     private direction: 'left' | 'right';
 
     constructor(scene: Phaser.Scene, x: number, y: number, texture: string, frame?: number) {

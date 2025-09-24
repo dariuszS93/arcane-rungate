@@ -28,9 +28,25 @@ export function preload(this: Phaser.Scene) {
 export function create(this: Phaser.Scene) {
     player = new Player(this, 100, 300);
 
+    coins = this.physics.add.group();
+    for (let i = 0; i < 12; i++) {
+        const x = Phaser.Math.Between(50, 750);
+        const y = Phaser.Math.Between(50, 550);
+        const coin = coins.create(x, y, 'coin') as Phaser.Physics.Arcade.Image;
+        coin.setScale(0.5);
+    }
+
     enemies = this.physics.add.group();
-    const enemy = new Enemy(this, 600, 300, 'enemy');
-    enemies.add(enemy);
+    for (let i = 0; i < 4; i++) {
+        const x = Phaser.Math.Between(100, 700);
+        const y = Phaser.Math.Between(100, 500);
+        const enemy = new Enemy(this, x, y, 'enemy');
+
+        enemy.minX = x - Phaser.Math.Between(50, 150);
+        enemy.maxX = x + Phaser.Math.Between(50, 150);
+
+        enemies.add(enemy);
+    }
 
     cursors = this.input.keyboard?.createCursorKeys() as Phaser.Types.Input.Keyboard.CursorKeys;
     // @ts-ignore
@@ -71,15 +87,6 @@ export function create(this: Phaser.Scene) {
             repeat: -1,
         });
     }
-    coins = this.physics.add.group({
-        key: 'coin',
-        repeat: 10,
-        setXY: { x: 50, y: 70, stepX: 70 }
-    });
-
-    (coins.getChildren() as Phaser.Physics.Arcade.Image[]).forEach((coin) => {
-        coin.setScale(0.5);
-    });
 
     // @ts-ignore
     scoreText = this.add.text(16, 16, 'Score: 0', { fontSize: '32px', fill: '#fff' });
