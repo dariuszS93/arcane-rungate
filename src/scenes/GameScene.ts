@@ -9,9 +9,15 @@ let player: Player;
 let coins: Phaser.Physics.Arcade.Group;
 let score = 0;
 let scoreText: Phaser.GameObjects.Text;
+let lives = 3;
+let livesText: Phaser.GameObjects.Text;
+let gameStarted = false;
+let isPlayerInvulnerable = false;
 let cursors: Phaser.Types.Input.Keyboard.CursorKeys;
 let shiftKey: Phaser.Input.Keyboard.Key;
 let enemies: Phaser.Physics.Arcade.Group;
+
+const PLAYER_SPAWN = { x: 100, y: 300 };
 
 export function preload(this: Phaser.Scene) {
     this.load.image('coin', '/assets/goldStar.png');
@@ -26,7 +32,7 @@ export function preload(this: Phaser.Scene) {
 }
 
 export function create(this: Phaser.Scene) {
-    player = new Player(this, 100, 300);
+    player = new Player(this, PLAYER_SPAWN.x, PLAYER_SPAWN.y);
 
     coins = this.physics.add.group();
     for (let i = 0; i < 12; i++) {
@@ -90,6 +96,33 @@ export function create(this: Phaser.Scene) {
 
     // @ts-ignore
     scoreText = this.add.text(16, 16, 'Score: 0', { fontSize: '32px', fill: '#fff' });
+    // @ts-ignore
+    livesText = this.add.text(16, 48, `Lives: ${lives}`, {fontSize: '24px', fill: '#fff'});
+
+    const overlay = this.add.rectangle(this.scale.width / 2, this.scale.height / 2, this.scale.width, this.scale.height, 0x00000, 0.6).setDepth(100);
+    const title = this.add.text(this.scale.width / 2, this.scale.height / 2 - 80, 'First Adventure', { fontSize: '40px', color: '#ffffff' }).setOrigin(0.5).setDepth(101);
+    const startText = this.add.text(this.scale.width / 2, this.scale.height / 2 - 10, 'Press ENTER to start', { fontSize: '24px', color: '#ffffff'}).setOrigin(0.5).setDepth(101);
+    const helpText = this.add.text(this.scale.width / 2, this.scale.height / 2 + 40, 'Arrows to move | SHIFT to run', { fontSize: '18px', color: '#dddddd'}).setOrigin(0.5).setDepth(101);
+
+    // @ts-ignore
+    const enterKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ENTER);
+    enterKey.once('down', () => {
+        overlay.destroy();
+        title.destroy();
+        startText.destroy();
+        helpText.destroy();
+        gameStarted = true;
+    });
+
+    this.input.once('pointerdown', () => {
+        if(!gameStarted) {
+            overlay.destroy();
+            title.destroy();
+            startText.destroy();
+            helpText.destroy();
+            gameStarted = true;
+        }
+    })
 
     // @ts-ignore
     this.physics.add.overlap(player, coins, collectCoin, undefined, this);
