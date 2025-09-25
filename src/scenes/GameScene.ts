@@ -1,11 +1,17 @@
-import Phaser from 'phaser';
+// @ts-ignore
+// @ts-ignore
 
-let player: Phaser.Types.Physics.Arcade.SpriteWithDynamicBody;
+import Phaser, {Scene} from 'phaser';
+import { Enemy } from '../characters/Enemy';
+import Player from '../characters/Player';
+
+let player: Player;
 let coins: Phaser.Physics.Arcade.Group;
 let score = 0;
 let scoreText: Phaser.GameObjects.Text;
 let cursors: Phaser.Types.Input.Keyboard.CursorKeys;
 let shiftKey: Phaser.Input.Keyboard.Key;
+let enemies: Phaser.Physics.Arcade.Group;
 
 export function preload(this: Phaser.Scene) {
     this.load.image('coin', '/assets/goldStar.png');
@@ -13,50 +19,82 @@ export function preload(this: Phaser.Scene) {
         frameWidth: 80,
         frameHeight: 112
     });
+    this.load.spritesheet('enemy', '/assets/enemy.png', {
+        frameWidth: 80,
+        frameHeight: 112
+    })
 }
 
 export function create(this: Phaser.Scene) {
-    player = this.physics.add.sprite(400, 300, 'adventurer');
-    player.setScale(0.5);
+    player = new Player(this, 100, 300);
+
+    coins = this.physics.add.group();
+    for (let i = 0; i < 12; i++) {
+        const x = Phaser.Math.Between(50, 750);
+        const y = Phaser.Math.Between(50, 550);
+        const coin = coins.create(x, y, 'coin') as Phaser.Physics.Arcade.Image;
+        coin.setScale(0.5);
+    }
+
+    enemies = this.physics.add.group();
+    for (let i = 0; i < 4; i++) {
+        const x = Phaser.Math.Between(100, 700);
+        const y = Phaser.Math.Between(100, 500);
+        const enemy = new Enemy(this, x, y, 'enemy');
+
+        enemy.minX = x - Phaser.Math.Between(50, 150);
+        enemy.maxX = x + Phaser.Math.Between(50, 150);
+
+        enemies.add(enemy);
+    }
 
     cursors = this.input.keyboard?.createCursorKeys() as Phaser.Types.Input.Keyboard.CursorKeys;
     // @ts-ignore
     shiftKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SHIFT);
 
-    this.anims.create({
-        key: 'walk',
-        frames: this.anims.generateFrameNumbers('adventurer', { start: 9, end: 10 }),
-        frameRate: 6,
-        repeat: -1,
-    });
+    if (!this.anims.exists('walk')) {
+        this.anims.create({
+            key: 'walk',
+            frames: this.anims.generateFrameNumbers('adventurer', { start: 9, end: 10 }),
+            frameRate: 6,
+            repeat: -1,
+        });
+    }
 
-    this.anims.create({
-        key: 'run',
-        frames: this.anims.generateFrameNumbers('adventurer', { start: 9, end: 10 }),
-        frameRate: 10,
-        repeat: -1,
-    });
+    if (!this.anims.exists('run')) {
+        this.anims.create({
+            key: 'run',
+            frames: this.anims.generateFrameNumbers('adventurer', { start: 9, end: 10 }),
+            frameRate: 10,
+            repeat: -1,
+        });
+    }
 
-    this.anims.create({
-        key: 'idle',
-        frames: [{ key: 'adventurer', frame: 0 }]
-    });
+    if (!this.anims.exists('idle')) {
+        this.anims.create({
+            key: 'idle',
+            frames: [{ key: 'adventurer', frame: 0 }]
+        });
+    }
 
-    coins = this.physics.add.group({
-        key: 'coin',
-        repeat: 10,
-        setXY: { x: 50, y: 70, stepX: 70 }
-    });
+    player.play('idle');
 
-    (coins.getChildren() as Phaser.Physics.Arcade.Image[]).forEach((coin) => {
-        coin.setScale(0.5);
-    });
+    if (!this.anims.exists('enemyWalk')) {
+        this.anims.create({
+            key: 'enemyWalk',
+            frames: this.anims.generateFrameNumbers('enemy', { start: 9, end: 10 }),
+            frameRate: 6,
+            repeat: -1,
+        });
+    }
 
     // @ts-ignore
     scoreText = this.add.text(16, 16, 'Score: 0', { fontSize: '32px', fill: '#fff' });
 
     // @ts-ignore
     this.physics.add.overlap(player, coins, collectCoin, undefined, this);
+    // @ts-ignore
+    this.physics.add.overlap(player, enemies, hitEnemy, undefined, this);
 }
 
 // @ts-ignore
@@ -67,25 +105,14 @@ function collectCoin(playerObj: Phaser.GameObjects.GameObject, coinObj: Phaser.G
     scoreText.setText(`Score: ${score}`);
 }
 
-export function update(this: Phaser.Scene) {
-    const speed = shiftKey.isDown ? 3 : 2;
-    const anim = shiftKey.isDown ? 'run' : 'walk';
+// @ts-ignore
+function hitEnemy(this: Phaser.Scene, playerObj: Phaser.GameObjects.GameObject, enemyObj: Phaser.GameObjects.GameObject) {
+    this.scene.restart();
+}
 
-    if (cursors.left?.isDown) {
-        player.setFlipX(true);
-        player.x -= speed;
-        player.anims.play(anim, true);
-    } else if (cursors.right?.isDown) {
-        player.setFlipX(false);
-        player.x += speed;
-        player.anims.play(anim, true);
-    } else if (cursors.up?.isDown) {
-        player.y -= speed;
-        player.anims.play(anim, true);
-    } else if (cursors.down?.isDown) {
-        player.y += speed;
-        player.anims.play(anim, true);
-    } else {
-        player.anims.play('idle', true);
-    }
+export function update(this: Phaser.Scene) {
+    if (player) player.move(cursors, shiftKey);
+    (enemies.getChildren() as Enemy[]).forEach((enemy) => {
+        enemy.update();
+    })
 }
