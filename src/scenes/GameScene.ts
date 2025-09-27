@@ -31,6 +31,7 @@ export function preload(this: Phaser.Scene) {
     })
 }
 
+// TODO: to refactor
 export function create(this: Phaser.Scene) {
     player = new Player(this, PLAYER_SPAWN.x, PLAYER_SPAWN.y);
 
@@ -128,6 +129,8 @@ export function create(this: Phaser.Scene) {
     this.physics.add.overlap(player, coins, collectCoin, undefined, this);
     // @ts-ignore
     this.physics.add.overlap(player, enemies, hitEnemy, undefined, this);
+    // @ts-ignore
+    this.physics.add.collider(player, enemies, hitEnemy, undefined, this);
 }
 
 // @ts-ignore
@@ -138,14 +141,67 @@ function collectCoin(playerObj: Phaser.GameObjects.GameObject, coinObj: Phaser.G
     scoreText.setText(`Score: ${score}`);
 }
 
+// TODO: to refactor
 // @ts-ignore
 function hitEnemy(this: Phaser.Scene, playerObj: Phaser.GameObjects.GameObject, enemyObj: Phaser.GameObjects.GameObject) {
-    this.scene.restart();
+    if(!gameStarted) return;
+    if(isPlayerInvulnerable) return;
+
+    lives -= 1;
+    livesText.setText(`Lives: ${lives}`);
+
+    //TODO: knockback to fix
+    const player = playerObj as Phaser.Physics.Arcade.Sprite;
+    const enemy = enemyObj as Phaser.Physics.Arcade.Sprite;
+    if (player && enemy && player.body) {
+        const dx = player.x - enemy.x;
+        const dy = player.y - enemy.y;
+        const angle = Math.atan2(dy, dx);
+        const force = 200;
+        player.setVelocity(Math.cos(angle) * force, Math.sin(angle) * force);
+        this.physics.moveToObject(player, enemy, -force, 200);
+    }
+
+    isPlayerInvulnerable = true;
+    player.setTint(0xff0000);
+
+    this.time.delayedCall(2000, () => {
+        isPlayerInvulnerable = false;
+        player.clearTint();
+        if(player.body) {
+            player.body.velocity.x = 0;
+            player.body.velocity.y = 0;
+        }
+    });
+
+    if(lives <= 0) {
+        const weight = this.scale.width / 2;
+        const height = this.scale.height / 2;
+        this.add.rectangle(weight, height, this.scale.width, this.scale.height, 0x00000, 0.7).setDepth(200);
+        this.add.text(weight, height - 30, 'Game Over', { fontSize: '36px', color: '#fff' }).setOrigin(0.5).setDepth(201);
+        this.add.text(weight, height + 20, 'Press ENTER to restart', { fontSize: '20px', color: '#fff' }).setOrigin(0.5).setDepth(201);
+
+        // @ts-ignore
+        const enter = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ENTER);
+        enter.once('down', () => {
+            score = 0;
+            lives = 3;
+            this.scene.restart();
+        })
+    }
 }
 
 export function update(this: Phaser.Scene) {
-    if (player) player.move(cursors, shiftKey);
-    (enemies.getChildren() as Enemy[]).forEach((enemy) => {
-        enemy.update();
-    })
+    if(gameStarted) {
+        if (player) player.move(cursors, shiftKey);
+        (enemies.getChildren() as Enemy[]).forEach((enemy) => {
+            enemy.update();
+        })
+    }else {
+        if (player) {
+            player.setVelocity(0, 0);
+            player.anims.play('idle', true);
+        }
+    }
+
 }
