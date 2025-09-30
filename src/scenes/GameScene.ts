@@ -1,7 +1,4 @@
-// @ts-ignore
-// @ts-ignore
-
-import Phaser, {Scene} from 'phaser';
+import Phaser from 'phaser';
 import { Enemy } from '../characters/Enemy';
 import Player from '../characters/Player';
 
@@ -128,8 +125,6 @@ export function create(this: Phaser.Scene) {
     // @ts-ignore
     this.physics.add.overlap(player, coins, collectCoin, undefined, this);
     // @ts-ignore
-    this.physics.add.overlap(player, enemies, hitEnemy, undefined, this);
-    // @ts-ignore
     this.physics.add.collider(player, enemies, hitEnemy, undefined, this);
 }
 
@@ -150,28 +145,23 @@ function hitEnemy(this: Phaser.Scene, playerObj: Phaser.GameObjects.GameObject, 
     lives -= 1;
     livesText.setText(`Lives: ${lives}`);
 
-    //TODO: knockback to fix
     const player = playerObj as Phaser.Physics.Arcade.Sprite;
     const enemy = enemyObj as Phaser.Physics.Arcade.Sprite;
+
     if (player && enemy && player.body) {
         const dx = player.x - enemy.x;
         const dy = player.y - enemy.y;
         const angle = Math.atan2(dy, dx);
-        const force = 200;
+        const force = 300;
         player.setVelocity(Math.cos(angle) * force, Math.sin(angle) * force);
-        this.physics.moveToObject(player, enemy, -force, 200);
     }
 
     isPlayerInvulnerable = true;
     player.setTint(0xff0000);
 
-    this.time.delayedCall(2000, () => {
+    this.time.delayedCall(1000, () => {
         isPlayerInvulnerable = false;
         player.clearTint();
-        if(player.body) {
-            player.body.velocity.x = 0;
-            player.body.velocity.y = 0;
-        }
     });
 
     if(lives <= 0) {
@@ -187,7 +177,7 @@ function hitEnemy(this: Phaser.Scene, playerObj: Phaser.GameObjects.GameObject, 
             score = 0;
             lives = 3;
             this.scene.restart();
-        })
+        });
     }
 }
 
@@ -203,5 +193,4 @@ export function update(this: Phaser.Scene) {
             player.anims.play('idle', true);
         }
     }
-
 }
