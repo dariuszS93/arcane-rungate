@@ -51,9 +51,10 @@ export class GameScene extends Phaser.Scene {
         for (let i = 0; i < 4; i++) {
             const x = Phaser.Math.Between(100, 700);
             const y = Phaser.Math.Between(100, 500);
-            const enemy = new Enemy(this, x, y, 'enemy');
+            const enemy = new Enemy(this, x, y, 'enemy', this.player as unknown as Phaser.Physics.Arcade.Sprite, this.gameManager);
             enemy.minX = x - Phaser.Math.Between(50, 150);
             enemy.maxX = x + Phaser.Math.Between(50, 150);
+            // @ts-ignore
             this.enemies.add(enemy);
         }
 
