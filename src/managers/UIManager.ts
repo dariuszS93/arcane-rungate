@@ -13,7 +13,7 @@ export class UIManager {
         // @ts-ignore
         this.scoreText = this.scene.add.text(16, 16, 'Score: 0', { fontSize: '32px', fill: '#fff' }).setScrollFactor(0);
         // @ts-ignore
-        this.livesText = this.scene.add.text(16, 48, 'Lives: 3', { fontSize: '24px', fill: '#fff' }).setScrollFactor(0);
+        this.livesText = this.scene.add.text(16, 48, 'Lives: 5', { fontSize: '24px', fill: '#fff' }).setScrollFactor(0);
 
         this.scene.events.on('scoreChanged', this.updateScore, this);
         this.scene.events.on('livesChanged', this.updateLives, this);
@@ -33,7 +33,6 @@ export class UIManager {
     private updateLives = (lives: number) => {
         this.livesText.setText(`Lives: ${lives}`);
     }
-
 
     showStartScreen = (onStart: () => void) => {
         const overlay = this.scene.add.rectangle(this.scene.scale.width / 2, this.scene.scale.height / 2, this.scene.scale.width, this.scene.scale.height, 0x00000, 0.6).setDepth(100);
@@ -64,5 +63,14 @@ export class UIManager {
         enter.once('down', () => {
             this.scene.scene.restart();
         });
+    }
+
+    showWinScreen = () => {
+        this.scene.add.rectangle(this.scene.scale.width/2, this.scene.scale.height/2, this.scene.scale.width, this.scene.scale.height, 0x00000, 0.7).setDepth(200);
+        this.scene.add.text(this.scene.scale.width/2, this.scene.scale.height/2 - 20, 'You Win!', {fontSize: '36px', color:'#fff'}).setOrigin(0.5).setDepth(201);
+        this.scene.add.text(this.scene.scale.width/2, this.scene.scale.height/2 + 20, 'Press ENTER to restart', {fontSize: '20px', color:'#fff'}).setOrigin(0.5).setDepth(201);
+        // @ts-ignore
+        const enter = this.scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ENTER);
+        enter.once('down', ()=> this.scene.scene.restart());
     }
 }
