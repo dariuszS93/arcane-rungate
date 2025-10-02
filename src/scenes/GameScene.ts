@@ -41,16 +41,16 @@ export class GameScene extends Phaser.Scene {
 
         this.coins = this.physics.add.group();
         for (let i = 0; i < 12; i++) {
-            const x = Phaser.Math.Between(50, 750);
-            const y = Phaser.Math.Between(50, 550);
+            const x = Phaser.Math.Between(50, 950);
+            const y = Phaser.Math.Between(50, 700);
             const coin = this.coins.create(x, y, 'coin') as Phaser.Physics.Arcade.Image;
             coin.setScale(0.5);
         }
 
         this.enemies = this.physics.add.group();
         for (let i = 0; i < 4; i++) {
-            const x = Phaser.Math.Between(100, 700);
-            const y = Phaser.Math.Between(100, 500);
+            const x = Phaser.Math.Between(100, 950);
+            const y = Phaser.Math.Between(100, 700);
             const enemy = new Enemy(this, x, y, 'enemy', this.player as unknown as Phaser.Physics.Arcade.Sprite, this.gameManager);
             enemy.minX = x - Phaser.Math.Between(50, 150);
             enemy.maxX = x + Phaser.Math.Between(50, 150);
@@ -66,8 +66,22 @@ export class GameScene extends Phaser.Scene {
 
         this.player.play('idle');
 
-        // @ts-ignore
-        this.physics.add.overlap(this.player, this.coins, this.gameManager.collectCoin, undefined, this.gameManager);
+        this.physics.add.overlap(this.player, this.coins, (p: any, coin: any) => {
+            this.gameManager.collectCoin(p, coin);
+            const remaining = this.coins.getChildren().filter((c:any)=>c.active).length;
+            if (remaining === 0) {
+                const px = this.scale.width - 80;
+                const py = 80;
+                const portal = this.add.circle(px, py, 20, 0x66ff66).setDepth(50);
+                this.physics.add.existing(portal, true);
+                // @ts-ignore
+                this.physics.add.overlap(this.player, portal, () => {
+                    this.ui.showWinScreen();
+                }, undefined, this);
+                this.gameManager.triggerBerserk();
+            }
+        }, undefined, this);
+
         // @ts-ignore
         this.physics.add.collider(this.player, this.enemies, this.gameManager.hitEnemy, undefined, this.gameManager);
 

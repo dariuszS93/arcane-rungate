@@ -7,7 +7,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
     private direction: 'left' | 'right';
     private readonly target?: Phaser.Physics.Arcade.Sprite;
     private gameManager?: any;
-    private detectionRange = 160;
+    private detectionRange = 120;
     private patrolSpeed = 40;
     private chaseSpeed = 60;
 

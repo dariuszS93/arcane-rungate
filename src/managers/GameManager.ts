@@ -3,9 +3,10 @@ import Phaser from 'phaser';
 export class GameManager {
     private scene: Phaser.Scene;
     public score = 0;
-    public lives = 3;
+    public lives = 5;
     public isStarted = false;
     private isPlayerInvulnerable = false;
+    public isBerserk = false;
 
     constructor(scene: Phaser.Scene) {
         this.scene = scene;
@@ -50,5 +51,12 @@ export class GameManager {
         if(this.lives <= 0) {
             this.scene.events.emit('gameOver');
         }
+    }
+
+    triggerBerserk() {
+        if (this.isBerserk) return;
+        this.isBerserk = true;
+        this.scene.events.emit('berserkStarted');
+        this.scene.events.emit('message', 'Enemies are enraged!');
     }
 }
