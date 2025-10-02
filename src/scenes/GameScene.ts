@@ -95,22 +95,22 @@ export class GameScene extends Phaser.Scene {
         for (let i = 0; i < 4; i++) {
             const x = Phaser.Math.Between(100, 900);
             const y = Phaser.Math.Between(100, 700);
-            const tree = this.add.rectangle(x, y, 40, 40, 0x228B22); // zielony kwadrat
-            this.physics.add.existing(tree, true); // true = static
+            const tree = this.add.rectangle(x, y, 40, 40, 0x228B22);
+            this.physics.add.existing(tree, true);
             this.obstacles.add(tree);
         }
 
         for (let i = 0; i < 4; i++) {
             const x = Phaser.Math.Between(100, 900);
             const y = Phaser.Math.Between(100, 700);
-            const rock = this.add.rectangle(x, y, 50, 50, 0x808080); // szary kwadrat
+            const rock = this.add.rectangle(x, y, 50, 50, 0x808080);
             this.physics.add.existing(rock, true);
             this.obstacles.add(rock);
         }
 
         const lakeX = Phaser.Math.Between(200, 800);
         const lakeY = Phaser.Math.Between(200, 600);
-        const lake = this.add.rectangle(lakeX, lakeY, 200, 100, 0x1E90FF); // niebieski prostokąt
+        const lake = this.add.rectangle(lakeX, lakeY, 200, 100, 0x1E90FF);
         this.physics.add.existing(lake, true);
         this.obstacles.add(lake);
 
