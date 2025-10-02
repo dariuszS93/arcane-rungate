@@ -16,6 +16,7 @@ export class GameScene extends Phaser.Scene {
 
     private ui!: UIManager;
     private gameManager!: GameManager;
+    private obstacles!: Phaser.Physics.Arcade.StaticGroup;
 
     constructor() {
         super({ key: 'GameScene' });
@@ -88,6 +89,33 @@ export class GameScene extends Phaser.Scene {
         this.ui.showStartScreen(() => {
             this.gameManager.startGame();
         });
+
+        this.obstacles = this.physics.add.staticGroup();
+
+        for (let i = 0; i < 4; i++) {
+            const x = Phaser.Math.Between(100, 900);
+            const y = Phaser.Math.Between(100, 700);
+            const tree = this.add.rectangle(x, y, 40, 40, 0x228B22); // zielony kwadrat
+            this.physics.add.existing(tree, true); // true = static
+            this.obstacles.add(tree);
+        }
+
+        for (let i = 0; i < 4; i++) {
+            const x = Phaser.Math.Between(100, 900);
+            const y = Phaser.Math.Between(100, 700);
+            const rock = this.add.rectangle(x, y, 50, 50, 0x808080); // szary kwadrat
+            this.physics.add.existing(rock, true);
+            this.obstacles.add(rock);
+        }
+
+        const lakeX = Phaser.Math.Between(200, 800);
+        const lakeY = Phaser.Math.Between(200, 600);
+        const lake = this.add.rectangle(lakeX, lakeY, 200, 100, 0x1E90FF); // niebieski prostokąt
+        this.physics.add.existing(lake, true);
+        this.obstacles.add(lake);
+
+        this.physics.add.collider(this.player, this.obstacles);
+        this.physics.add.collider(this.enemies, this.obstacles);
     }
 
     update() {

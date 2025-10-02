@@ -8,8 +8,6 @@ export class UIManager {
     constructor(scene: Phaser.Scene) {
         this.scene = scene;
 
-        this.scene = scene;
-
         // @ts-ignore
         this.scoreText = this.scene.add.text(16, 16, 'Score: 0', { fontSize: '32px', fill: '#fff' }).setScrollFactor(0);
         // @ts-ignore
