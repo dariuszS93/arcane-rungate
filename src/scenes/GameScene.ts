@@ -5,6 +5,37 @@ import { UIManager } from '../managers/UIManager.ts';
 import { GameManager } from '../managers/GameManager.ts';
 
 const PLAYER_SPAWN = { x: 100, y: 300 };
+const TREE_POSITIONS = [
+    { x: 200, y: 150 },
+    { x: 400, y: 250 },
+    { x: 700, y: 200 },
+    { x: 850, y: 400 },
+];
+const ROCK_POSITIONS = [
+    { x: 250, y: 500 },
+    { x: 500, y: 550 },
+    { x: 750, y: 450 },
+    { x: 900, y: 300 },
+];
+const LAKE_POSITION = { x: 500, y: 400 };
+const COIN_POSITIONS = [
+    { x: 150, y: 400 },
+    { x: 300, y: 150 },
+    { x: 450, y: 500 },
+    { x: 600, y: 200 },
+    { x: 750, y: 550 },
+    { x: 900, y: 100 },
+    { x: 950, y: 350 },
+    { x: 800, y: 600 },
+    { x: 400, y: 650 },
+    { x: 200, y: 600 },
+];
+const ENEMY_POSITIONS = [
+    { x: 650, y: 500 },
+    { x: 850, y: 200 },
+    { x: 350, y: 600 },
+    { x: 250, y: 100 },
+];
 
 export class GameScene extends Phaser.Scene {
 
@@ -16,6 +47,7 @@ export class GameScene extends Phaser.Scene {
 
     private ui!: UIManager;
     private gameManager!: GameManager;
+    private obstacles!: Phaser.Physics.Arcade.StaticGroup;
 
     constructor() {
         super({ key: 'GameScene' });
@@ -40,23 +72,18 @@ export class GameScene extends Phaser.Scene {
         this.player = new Player(this, PLAYER_SPAWN.x, PLAYER_SPAWN.y);
 
         this.coins = this.physics.add.group();
-        for (let i = 0; i < 12; i++) {
-            const x = Phaser.Math.Between(50, 950);
-            const y = Phaser.Math.Between(50, 700);
-            const coin = this.coins.create(x, y, 'coin') as Phaser.Physics.Arcade.Image;
+        COIN_POSITIONS.forEach(pos => {
+            const coin = this.coins.create(pos.x, pos.y, 'coin') as Phaser.Physics.Arcade.Image;
             coin.setScale(0.5);
-        }
+        });
 
         this.enemies = this.physics.add.group();
-        for (let i = 0; i < 4; i++) {
-            const x = Phaser.Math.Between(100, 950);
-            const y = Phaser.Math.Between(100, 700);
-            const enemy = new Enemy(this, x, y, 'enemy', this.player as unknown as Phaser.Physics.Arcade.Sprite, this.gameManager);
-            enemy.minX = x - Phaser.Math.Between(50, 150);
-            enemy.maxX = x + Phaser.Math.Between(50, 150);
-            // @ts-ignore
+        ENEMY_POSITIONS.forEach(pos => {
+            const enemy = new Enemy(this, pos.x, pos.y, 'enemy', this.player as unknown as Phaser.Physics.Arcade.Sprite, this.gameManager);
+            enemy.minX = pos.x - 100;
+            enemy.maxX = pos.x + 100;
             this.enemies.add(enemy);
-        }
+        });
 
         this.cursors = this.input.keyboard?.createCursorKeys() as Phaser.Types.Input.Keyboard.CursorKeys;
         // @ts-ignore
@@ -88,6 +115,27 @@ export class GameScene extends Phaser.Scene {
         this.ui.showStartScreen(() => {
             this.gameManager.startGame();
         });
+
+        this.obstacles = this.physics.add.staticGroup();
+
+        TREE_POSITIONS.forEach(pos => {
+           const tree = this.add.rectangle(pos.x, pos.y, 40, 40, 0x228B22);
+           this.physics.add.existing(tree, true);
+           this.obstacles.add(tree);
+        });
+
+        ROCK_POSITIONS.forEach(pos => {
+           const rock = this.add.rectangle(pos.x, pos.y, 50, 50, 0x808080);
+           this.physics.add.existing(rock, true);
+           this.obstacles.add(rock);
+        });
+
+        const lake = this.add.rectangle(LAKE_POSITION.x, LAKE_POSITION.y, 200, 100, 0x1E90FF);
+        this.physics.add.existing(lake, true);
+        this.obstacles.add(lake);
+
+        this.physics.add.collider(this.player, this.obstacles);
+        this.physics.add.collider(this.enemies, this.obstacles);
     }
 
     update() {
