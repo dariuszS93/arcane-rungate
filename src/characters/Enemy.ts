@@ -1,6 +1,5 @@
 import Phaser from 'phaser';
 
-// @ts-ignore
 export class Enemy extends Phaser.Physics.Arcade.Sprite {
     public minX: number;
     public maxX: number;
@@ -13,12 +12,18 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
     private wasBerserk = false;
     private chaseCooldown = 0;
 
-    constructor(scene: Phaser.Scene, x: number, y: number, texture: string, target?: Phaser.Physics.Arcade.Sprite, gameManager?: any, frame?: number) {
+    constructor(
+        scene: Phaser.Scene,
+        x: number,
+        y: number,
+        texture: string,
+        target?: Phaser.Physics.Arcade.Sprite,
+        gameManager?: any,
+        frame?: number
+    ) {
         super(scene, x, y, texture, frame);
 
-        // @ts-ignore
         scene.add.existing(this);
-        // @ts-ignore
         scene.physics.add.existing(this);
 
         this.setScale(0.5);
@@ -34,16 +39,17 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
 
     public update(): void {
         const isBerserk = !!this.gameManager?.isBerserk;
+        const worldBounds = this.scene.physics.world.bounds;
 
         if (this.wasBerserk && !isBerserk) {
-            this.state = 'patrol';
+            this.setVelocity(0, 0);
             this.direction = Math.random() > 0.5 ? 'left' : 'right';
         }
         this.wasBerserk = isBerserk;
 
-        const distToPlayer = this.target ? Phaser.Math.Distance.Between(this.x, this.y, this.target.x, this.target.y) : Infinity;
-
-        const worldBounds = this.scene.physics.world.bounds;
+        const distToPlayer = this.target
+            ? Phaser.Math.Distance.Between(this.x, this.y, this.target.x, this.target.y)
+            : Infinity;
 
         if (this.x <= worldBounds.x + 10) {
             this.direction = 'right';
@@ -61,7 +67,6 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
         }
 
         if (isBerserk) {
-            this.wasBerserk = true;
             if (this.target) {
                 const vx = this.target.x - this.x;
                 const vy = this.target.y - this.y;
@@ -72,16 +77,10 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
                 this.setFlipX(nx < 0);
             }
             this.anims.play('enemyWalk', true);
-            return
+            return;
         }
 
-        if (!isBerserk && this.wasBerserk) {
-            this.wasBerserk = false;
-            this.setVelocity(0);
-            this.direction = Math.random() < 0.5 ? 'left' : 'right';
-        }
-
-        if (isBerserk || (distToPlayer <= this.detectionRange)) {
+        if (distToPlayer <= this.detectionRange) {
             this.state = 'chase';
             this.chaseCooldown = 1200;
             if (this.target) {
@@ -98,6 +97,8 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
                 this.chaseCooldown -= 16;
             } else {
                 this.state = 'patrol';
+                this.setVelocityY(0);
+
                 if (this.direction === 'left') {
                     this.setVelocityX(-this.patrolSpeed);
                     this.setFlipX(true);
@@ -108,17 +109,16 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
                     if (this.x >= this.maxX) this.direction = 'left';
                 }
             }
-
         }
 
         // @ts-ignore
-        if(this.body.blocked.left) this.direction = 'right';
+        if (this.body?.blocked?.left) this.direction = 'right';
         // @ts-ignore
-        if(this.body.blocked.right) this.direction = 'left';
+        if (this.body?.blocked?.right) this.direction = 'left';
         // @ts-ignore
-        if(this.body.blocked.up) this.setVelocity(this.patrolSpeed);
+        if (this.body?.blocked?.up) this.setVelocityY(this.patrolSpeed);
         // @ts-ignore
-        if(this.body.blocked.down) this.setVelocity(-this.patrolSpeed);
+        if (this.body?.blocked?.down) this.setVelocityY(-this.patrolSpeed);
 
         this.anims.play('enemyWalk', true);
     }

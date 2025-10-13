@@ -66,6 +66,15 @@ export class GameScene extends Phaser.Scene {
     }
 
     create = ()=> {
+        this.events.on(Phaser.Scenes.Events.SHUTDOWN, () => {
+            this.anims.resumeAll();
+        });
+
+        this.events.on(Phaser.Scenes.Events.START, () => {
+            this.anims.resumeAll();
+            this.physics.world.resume();
+        });
+
         this.gameManager = new GameManager(this);
         this.ui = new UIManager(this);
 
