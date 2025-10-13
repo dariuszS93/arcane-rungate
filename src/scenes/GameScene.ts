@@ -104,6 +104,7 @@ export class GameScene extends Phaser.Scene {
                 // @ts-ignore
                 this.physics.add.overlap(this.player, portal, () => {
                     this.ui.showWinScreen();
+                    this.gameManager.pauseGame();
                 }, undefined, this);
                 this.gameManager.triggerBerserk();
             }
