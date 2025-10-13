@@ -50,6 +50,7 @@ export class GameManager {
 
         if(this.lives <= 0) {
             this.scene.events.emit('gameOver');
+            this.pauseGame();
         }
     }
 
@@ -58,5 +59,19 @@ export class GameManager {
         this.isBerserk = true;
         this.scene.events.emit('berserkStarted');
         this.scene.events.emit('message', 'Enemies are enraged!');
+
+        this.scene.time.delayedCall(6000, () => {
+            this.endBerserk();
+        })
+    }
+
+    endBerserk() {
+        this.isBerserk = false;
+        this.scene.events.emit('berserkEnded');
+    }
+
+    pauseGame() {
+        this.scene.physics.pause();
+        this.scene.anims.pauseAll();
     }
 }
