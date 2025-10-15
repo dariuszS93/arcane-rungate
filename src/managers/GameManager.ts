@@ -60,7 +60,7 @@ export class GameManager {
         this.scene.events.emit('berserkStarted');
         this.scene.events.emit('message', 'Enemies are enraged!');
 
-        this.scene.time.delayedCall(6000, () => {
+        this.scene.time.delayedCall(12000, () => {
             this.endBerserk();
         })
     }
