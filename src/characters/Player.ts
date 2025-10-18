@@ -14,29 +14,27 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
         const speed = shiftKey.isDown ? 100 : 60;
         const anim = shiftKey.isDown ? 'run' : 'walk';
 
-        let moving = false;
+        let vx = 0;
+        let vy = 0;
 
-        if (cursors.left?.isDown) {
-            this.setVelocity(-speed, 0);
-            this.setFlipX(true);
-            this.anims.play(anim, true);
-            moving = true;
-        } else if (cursors.right?.isDown) {
-            this.setVelocity(speed, 0);
-            this.setFlipX(false);
-            this.anims.play(anim, true);
-            moving = true;
-        } else if (cursors.up?.isDown) {
-            this.setVelocity(0, -speed);
-            this.anims.play(anim, true);
-            moving = true;
-        } else if (cursors.down?.isDown) {
-            this.setVelocity(0, speed);
-            this.anims.play(anim, true);
-            moving = true;
-        }
+        if (cursors.left?.isDown) vx -= 1;
+        if (cursors.right?.isDown) vx += 1;
+        if (cursors.up?.isDown) vy -= 1;
+        if (cursors.down?.isDown) vy += 1;
 
-        if (!moving) {
+        if (vx !== 0 || vy !== 0) {
+            const len = Math.hypot(vx, vy);
+            if (len > 0) {
+                vx = (vx / len) * speed;
+                vy = (vy / len) * speed;
+            }
+            this.setVelocity(vx, vy);
+
+            if (vx < 0) this.setFlipX(true);
+            else if (vx > 0) this.setFlipX(false);
+
+            this.anims.play(anim, true);
+        } else {
             this.setVelocity(0, 0);
             this.anims.play('idle', true);
         }
