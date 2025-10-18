@@ -9,7 +9,7 @@ const TREE_POSITIONS = [
     { x: 200, y: 150 }, { x: 400, y: 250 }, { x: 700, y: 200 }, { x: 850, y: 400 },
 ];
 const ROCK_POSITIONS = [
-    { x: 250, y: 500 }, { x: 500, y: 550 }, { x: 750, y: 450 }, { x: 900, y: 300 },
+    { x: 250, y: 500 }, { x: 500, y: 550 }, { x: 750, y: 450 }, { x: 900, y: 250 },
 ];
 const LAKE_POSITION = { x: 500, y: 400 };
 const COIN_POSITIONS = [
@@ -164,9 +164,19 @@ export class GameScene extends Phaser.Scene {
         if (remaining === 0) this.spawnPortal();
     }
 
+    private getRandomPortalPosition() {
+        const margin = 80;
+        const corners = [
+            { x: margin, y: margin },
+            { x: this.scale.width - margin, y: margin },
+            { x: margin, y: this.scale.height - margin },
+            { x: this.scale.width - margin, y: this.scale.height - margin },
+        ];
+        return Phaser.Utils.Array.GetRandom(corners);
+    }
+
     private spawnPortal() {
-        const px = this.scale.width - 80;
-        const py = 80;
+        const { x: px, y: py } = this.getRandomPortalPosition();
         const portal = this.add.circle(px, py, 20, 0x66ff66).setDepth(50);
         this.physics.add.existing(portal, true);
 
