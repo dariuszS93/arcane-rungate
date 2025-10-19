@@ -3,7 +3,9 @@ import Phaser from 'phaser';
 export class Enemy extends Phaser.Physics.Arcade.Sprite {
     public minX: number;
     public maxX: number;
-    private direction: 'left' | 'right';
+    public minY: number;
+    public maxY: number;
+    private direction: 'left' | 'right' | 'up' | 'down';
     private readonly target?: Phaser.Physics.Arcade.Sprite;
     private gameManager?: any;
     private detectionRange = 120;
@@ -11,6 +13,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
     private chaseSpeed = 60;
     private wasBerserk = false;
     private chaseCooldown = 0;
+    private patrolChangeTimer = 0;
 
     constructor(
         scene: Phaser.Scene,
@@ -31,13 +34,18 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
 
         this.minX = x - 100;
         this.maxX = x + 100;
-        this.direction = 'left';
+        this.minY = y - 100;
+        this.maxY = y + 100;
+
+        const dirs: Array<typeof this.direction> = ['left', 'right', 'up', 'down'];
+        this.direction = Phaser.Utils.Array.GetRandom(dirs);
 
         this.target = target;
         this.gameManager = gameManager;
     }
 
-    public update(): void {
+    public update(_time: number, delta?: number): void {
+        const dt = delta ?? 16;
         const isBerserk = !!this.gameManager?.isBerserk;
         const worldBounds = this.scene.physics.world.bounds;
 
@@ -51,7 +59,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
         } else if (distToPlayer <= this.detectionRange) {
             this.chasePlayer();
         } else {
-            this.handlePatrol();
+            this.handlePatrol(dt);
         }
 
         this.handleBlocked();
@@ -61,7 +69,9 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
     private resetDirectionAfterBerserk(isBerserk: boolean) {
         if (this.wasBerserk && !isBerserk) {
             this.setVelocity(0, 0);
-            this.direction = Math.random() > 0.5 ? 'left' : 'right';
+            const dirs: Array<typeof this.direction> = ['left', 'right', 'up', 'down'];
+            this.direction = Phaser.Utils.Array.GetRandom(dirs);
+            this.patrolChangeTimer = 0;
         }
         this.wasBerserk = isBerserk;
     }
@@ -73,17 +83,19 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
 
     private handleWorldBounds(bounds: Phaser.Geom.Rectangle) {
         if (this.x <= bounds.x + 10) {
-            this.direction = 'right';
+            if (this.direction === 'left') this.direction = 'right';
             this.setVelocityX(this.patrolSpeed);
         }
         if (this.x >= bounds.width - 10) {
-            this.direction = 'left';
+            if (this.direction === 'right') this.direction = 'left';
             this.setVelocityX(-this.patrolSpeed);
         }
         if (this.y <= bounds.y + 10) {
+            if (this.direction === 'up') this.direction = 'down';
             this.setVelocityY(this.patrolSpeed);
         }
         if (this.y >= bounds.height - 10) {
+            if (this.direction === 'down') this.direction = 'up';
             this.setVelocityY(-this.patrolSpeed);
         }
     }
@@ -103,33 +115,69 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
         this.setFlipX(nx < 0);
     }
 
-    private handlePatrol() {
+    private handlePatrol(dt: number) {
         if (this.chaseCooldown > 0) {
-            this.chaseCooldown -= 16;
+            this.chaseCooldown -= dt;
             return;
         }
-        this.setVelocityY(0);
 
-        if (this.direction === 'left') {
-            this.setVelocityX(-this.patrolSpeed);
-            this.setFlipX(true);
-            if (this.x <= this.minX) this.direction = 'right';
-        } else {
-            this.setVelocityX(this.patrolSpeed);
-            this.setFlipX(false);
-            if (this.x >= this.maxX) this.direction = 'left';
+        this.patrolChangeTimer -= dt;
+        if (this.patrolChangeTimer <= 0) {
+            this.pickNewDirection();
+            this.patrolChangeTimer = Phaser.Math.Between(1200, 1800);
+        }
+
+        switch (this.direction) {
+            case 'left':
+                this.setVelocity(-this.patrolSpeed, 0);
+                this.setFlipX(true);
+                if (this.x <= this.minX) this.direction = 'right';
+                break;
+            case 'right':
+                this.setVelocity(this.patrolSpeed, 0);
+                this.setFlipX(false);
+                if (this.x >= this.maxX) this.direction = 'left';
+                break;
+            case 'up':
+                this.setVelocity(0, -this.patrolSpeed);
+                if (this.y <= this.minY) this.direction = 'down';
+                break;
+            case 'down':
+                this.setVelocity(0, this.patrolSpeed);
+                if (this.y >= this.maxY) this.direction = 'up';
+                break;
+        }
+    }
+
+    private pickNewDirection() {
+        const possible: Array<typeof this.direction> = [];
+
+        if (this.x > this.minX + 5) possible.push('left');
+        if (this.x < this.maxX - 5) possible.push('right');
+        if (this.y > this.minY + 5) possible.push('up');
+        if (this.y < this.maxY - 5) possible.push('down');
+
+        if (possible.length) {
+            const filtered = possible.filter(d =>
+                !( (this.direction === 'left' && d === 'right') ||
+                    (this.direction === 'right' && d === 'left') ||
+                    (this.direction === 'up' && d === 'down') ||
+                    (this.direction === 'down' && d === 'up') )
+            );
+            const pool = filtered.length ? filtered : possible;
+            this.direction = Phaser.Utils.Array.GetRandom(pool);
         }
     }
 
     private handleBlocked() {
         // @ts-ignore
-        if (this.body?.blocked?.left) this.direction = 'right';
+        if (this.body?.blocked?.left && this.direction === 'left') this.direction = 'right';
         // @ts-ignore
-        if (this.body?.blocked?.right) this.direction = 'left';
+        if (this.body?.blocked?.right && this.direction === 'right') this.direction = 'left';
         // @ts-ignore
-        if (this.body?.blocked?.up) this.setVelocityY(this.patrolSpeed);
+        if (this.body?.blocked?.up && this.direction === 'up') this.direction = 'down';
         // @ts-ignore
-        if (this.body?.blocked?.down) this.setVelocityY(-this.patrolSpeed);
+        if (this.body?.blocked?.down && this.direction === 'down') this.direction = 'up';
     }
 
     private getDirectionToPlayer() {
