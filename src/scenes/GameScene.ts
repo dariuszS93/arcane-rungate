@@ -6,14 +6,14 @@ import { GameManager } from '../managers/GameManager';
 
 const PLAYER_SPAWN = { x: 100, y: 300 };
 const TREE_POSITIONS = [
-    { x: 200, y: 150 }, { x: 400, y: 250 }, { x: 700, y: 200 }, { x: 850, y: 400 },
+    { x: 200, y: 150 }, { x: 450, y: 100 }, { x: 700, y: 200 }, { x: 850, y: 600 },
 ];
 const ROCK_POSITIONS = [
-    { x: 250, y: 500 }, { x: 500, y: 550 }, { x: 750, y: 450 }, { x: 900, y: 250 },
+    { x: 150, y: 500 }, { x: 500, y: 650 }, { x: 750, y: 450 }, { x: 900, y: 250 },
 ];
-const LAKE_POSITION = { x: 500, y: 400 };
+const LAKE_POSITION = { x: 450, y: 450 };
 const COIN_POSITIONS = [
-    { x: 150, y: 400 }, { x: 300, y: 150 }, { x: 450, y: 500 }, { x: 600, y: 200 },
+    { x: 150, y: 400 }, { x: 300, y: 150 }, { x: 550, y: 600 }, { x: 600, y: 200 },
     { x: 750, y: 550 }, { x: 900, y: 100 }, { x: 950, y: 350 }, { x: 800, y: 600 },
     { x: 400, y: 650 }, { x: 200, y: 600 },
 ];
@@ -30,6 +30,8 @@ export class GameScene extends Phaser.Scene {
     private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
     private ui!: UIManager;
     private gameManager!: GameManager;
+    // @ts-ignore
+    private background!: Phaser.GameObjects.TileSprite;
 
     constructor() {
         super({ key: 'GameScene' });
@@ -45,11 +47,14 @@ export class GameScene extends Phaser.Scene {
             frameWidth: 80,
             frameHeight: 112,
         });
+
+        this.load.atlas('world', '/assets/world.png', '/assets/world.json');
     }
 
     create() {
         this.initSceneEvents();
         this.initManagers();
+        this.initBackground();
         this.initPlayer();
         this.initObstacles();
         this.initCoins();
@@ -62,11 +67,25 @@ export class GameScene extends Phaser.Scene {
     update() {
         if (this.gameManager.isStarted) {
             this.player.move(this.cursors, this.shiftKey);
+            // @ts-ignore
             (this.enemies.getChildren() as Enemy[]).forEach(enemy => enemy.update());
         } else {
             this.player.setVelocity(0, 0);
             this.player.anims.play('idle', true);
         }
+    }
+
+    private initBackground() {
+        const grassFrame = 'grass';
+        if (!this.textures.get('world').has(grassFrame)) {
+            console.warn(`Frame ${grassFrame} nie znaleziony w atlasie 'world'.`);
+            return;
+        }
+        this.background = this.add
+            .tileSprite(0, 0, this.scale.width, this.scale.height, 'world', grassFrame)
+            .setOrigin(0)
+            .setDisplaySize(1024, 768)
+            .setDepth(-10);
     }
 
     private initSceneEvents() {
@@ -98,18 +117,21 @@ export class GameScene extends Phaser.Scene {
         this.obstacles = this.physics.add.staticGroup();
 
         TREE_POSITIONS.forEach(pos => {
-            const tree = this.add.rectangle(pos.x, pos.y, 40, 40, 0x228B22);
+            const tree = this.add.sprite(pos.x, pos.y, 'world', 'tree1');
+            tree.setDisplaySize(64, 128);
             this.physics.add.existing(tree, true);
             this.obstacles.add(tree);
         });
 
         ROCK_POSITIONS.forEach(pos => {
-            const rock = this.add.rectangle(pos.x, pos.y, 50, 50, 0x808080);
+            const rock = this.add.sprite(pos.x, pos.y, 'world', 'rock');
+            rock.setDisplaySize(64, 64);
             this.physics.add.existing(rock, true);
             this.obstacles.add(rock);
         });
 
-        const lake = this.add.rectangle(LAKE_POSITION.x, LAKE_POSITION.y, 200, 100, 0x1E90FF);
+        const lake = this.add.sprite(LAKE_POSITION.x, LAKE_POSITION.y, 'world', 'lake');
+        lake.setDisplaySize(300, 200);
         this.physics.add.existing(lake, true);
         this.obstacles.add(lake);
     }
