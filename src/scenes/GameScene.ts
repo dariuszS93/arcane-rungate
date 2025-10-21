@@ -48,7 +48,7 @@ export class GameScene extends Phaser.Scene {
             frameHeight: 112,
         });
 
-        this.load.atlas('world', '/assets/world.png', '/assets/world.json');
+        this.load.atlas('world', '/assets/world/world.png', '/assets/world/world.json');
     }
 
     create() {

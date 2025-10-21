@@ -1,7 +1,7 @@
 # Arcane Runegate (Alpha)
 Simple top-down prototype made with Phaser. Control the hero, collect coins, avoid zombies. After collecting all coins a portal appears - enter it to win.
 
-![Gameplay Screenshot](public/assets/readmeScreenshot.png)
+![Gameplay Screenshot](public/assets/screenshots/readmeScreenshot.png)
 ## Features
 - Top-down single level (early test map)
 - Keyboard controlled player
