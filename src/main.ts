@@ -3,8 +3,8 @@ import { GameScene } from './scenes/GameScene';
 
 const config: Phaser.Types.Core.GameConfig = {
     type: Phaser.AUTO,
-    width: 1024,
-    height: 768,
+    width: 1920,
+    height: 1080,
     // backgroundColor: '#2d2d2d',
     physics: {
         default: 'arcade',
