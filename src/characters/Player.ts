@@ -3,6 +3,7 @@ import Phaser from "phaser";
 export default class Player extends Phaser.Physics.Arcade.Sprite {
     hp: number;
     maxHp: number;
+    isKnockedBack = false;
 
     constructor(scene: Phaser.Scene, x: number, y: number) {
         super(scene, x, y, 'adventurer');
@@ -27,6 +28,8 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
     }
 
     move(cursors: Phaser.Types.Input.Keyboard.CursorKeys, shiftKey: Phaser.Input.Keyboard.Key) {
+        if (this.isKnockedBack) return;
+
         const speed = shiftKey.isDown ? 100 : 60;
         const anim = shiftKey.isDown ? 'run' : 'walk';
 

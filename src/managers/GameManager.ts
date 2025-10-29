@@ -38,7 +38,17 @@ export class GameManager {
             const dy = player.y - enemy.y;
             const angle = Math.atan2(dy, dx);
             const force = 300;
+            player.x += Math.cos(angle) * 10;
+            player.y += Math.sin(angle) * 10;
+
+            player.isKnockedBack = true;
             player.setVelocity(Math.cos(angle) * force, Math.sin(angle) * force);
+
+            this.scene.time.delayedCall(150, () => {
+                if (!player.active) return;
+                player.setVelocity(0, 0);
+                player.isKnockedBack = false;
+            });
         }
 
         this.isPlayerInvulnerable = true;
