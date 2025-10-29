@@ -1,6 +1,9 @@
 import Phaser from "phaser";
 
 export default class Player extends Phaser.Physics.Arcade.Sprite {
+    hp: number;
+    maxHp: number;
+
     constructor(scene: Phaser.Scene, x: number, y: number) {
         super(scene, x, y, 'adventurer');
         scene.add.existing(this);
@@ -10,6 +13,17 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
         // @ts-ignore
         this.body.setSize(30, 60).setOffset(25, 40);
         this.setCollideWorldBounds(true);
+
+        this.hp = 80;
+        this.maxHp = 100;
+    }
+
+    heal(amount: number) {
+        this.hp = Math.min(this.hp + amount, this.maxHp);
+    }
+
+    takeDamage(amount: number) {
+        this.hp = Math.max(this.hp - amount, 0);
     }
 
     move(cursors: Phaser.Types.Input.Keyboard.CursorKeys, shiftKey: Phaser.Input.Keyboard.Key) {

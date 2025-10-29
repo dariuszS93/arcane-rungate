@@ -1,6 +1,9 @@
 import Phaser from 'phaser';
 
 export class Enemy extends Phaser.Physics.Arcade.Sprite {
+    hp: number;
+    maxHp: number;
+    healthBar: Phaser.GameObjects.Graphics;
     public minX: number;
     public maxX: number;
     public minY: number;
@@ -44,9 +47,14 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
 
         this.target = target;
         this.gameManager = gameManager;
+
+        this.hp = 50;
+        this.maxHp = 50;
+        this.healthBar = scene.add.graphics();
     }
 
     public update(_time: number, delta?: number): void {
+        this.updateHealthBar();
         const dt = delta ?? 16;
         const isBerserk = !!this.gameManager?.isBerserk;
         const worldBounds = this.scene.physics.world.bounds;
@@ -66,6 +74,25 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
 
         this.handleBlocked();
         this.anims.play('enemyWalk', true);
+    }
+
+    takeDamage(amount: number) {
+        this.hp = Math.max(this.hp - amount, 0);
+    }
+
+    updateHealthBar() {
+        this.healthBar.clear();
+        const barWidth = 40;
+        const barHeight = 5;
+        const x = this.x - barWidth / 2;
+        const y = this.y - 40;
+
+        this.healthBar.fillStyle(0x000000, 0.5);
+        this.healthBar.fillRect(x - 1, y - 1, barWidth + 2, barHeight + 2);
+
+        const healthPercent = this.hp / this.maxHp;
+        this.healthBar.fillStyle(0xff0000);
+        this.healthBar.fillRect(x, y, barWidth * healthPercent, barHeight);
     }
 
     private resetDirectionAfterBerserk(isBerserk: boolean) {

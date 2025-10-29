@@ -40,6 +40,10 @@ const ENEMY_POSITIONS = [
     { x: 400, y: 600 }, { x: 1500, y: 200 }, { x: 350, y: 350 }, { x: 1600, y: 950 }, { x: 1200, y: 650 },
 ];
 
+const POTION_POSITIONS = [
+    { x: 650, y: 150 }, { x: 1500, y: 100 }, { x: 1300, y: 600 }, { x: 1500, y: 900 }, { x: 750, y: 900 },
+];
+
 export class GameScene extends Phaser.Scene {
     private player!: Player;
     private coins!: Phaser.Physics.Arcade.Group;
@@ -51,6 +55,8 @@ export class GameScene extends Phaser.Scene {
     private gameManager!: GameManager;
     // @ts-ignore
     private background!: Phaser.GameObjects.TileSprite;
+    private potions!: Phaser.Physics.Arcade.Group;
+    private playerHpBar!: Phaser.GameObjects.Graphics;
 
     constructor() {
         super({ key: 'GameScene' });
@@ -77,6 +83,8 @@ export class GameScene extends Phaser.Scene {
         this.initPlayer();
         this.initObstacles();
         this.initCoins();
+        this.initPotions();
+        this.initPlayerHpBar();
         this.initEnemies();
         this.initCollisions();
         this.setupAnimations();
@@ -92,6 +100,47 @@ export class GameScene extends Phaser.Scene {
             this.player.setVelocity(0, 0);
             this.player.anims.play('idle', true);
         }
+        this.updatePlayerHpBar();
+    }
+
+    private initPotions() {
+        this.potions = this.physics.add.group();
+        POTION_POSITIONS.forEach(pos => {
+            const potion = this.potions.create(pos.x, pos.y, 'world', 'barrel');
+            potion.setDisplaySize(32, 32);
+        });
+
+        this.physics.add.overlap(this.player, this.potions,(_, potion) => {
+            // @ts-ignore
+            this.handlePotionPickup(potion);
+        });
+    }
+
+    private handlePotionPickup(potion: Phaser.GameObjects.GameObject) {
+        potion.destroy();
+        this.player.heal(20);
+        this.updatePlayerHpBar();
+    }
+
+    private initPlayerHpBar() {
+        this.playerHpBar = this.add.graphics();
+        this.updatePlayerHpBar();
+    }
+
+    private updatePlayerHpBar() {
+        this.playerHpBar.clear();
+        const width = 200;
+        const height = 15;
+        const x = 20;
+        const y = 20;
+
+        const hpPercent = this.player.hp / this.player.maxHp;
+
+        this.playerHpBar.fillStyle(0x000000, 0.5);
+        this.playerHpBar.fillRect(x - 2, y - 2, width + 4, height + 4);
+
+        this.playerHpBar.fillStyle(0xff0000);
+        this.playerHpBar.fillRect(x, y, width * hpPercent, height);
     }
 
     private initBackground() {
