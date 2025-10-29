@@ -1,12 +1,13 @@
 import Phaser from 'phaser';
+import type Player from "../characters/Player";
 
 export class GameManager {
     private scene: Phaser.Scene;
     public score = 0;
-    public lives = 5;
     public isStarted = false;
     private isPlayerInvulnerable = false;
     public isBerserk = false;
+    private damagePerHit = 20;
 
     constructor(scene: Phaser.Scene) {
         this.scene = scene;
@@ -26,11 +27,11 @@ export class GameManager {
     hitEnemy = (playerObj: Phaser.GameObjects.GameObject, enemyObj: Phaser.GameObjects.GameObject)=> {
         if (!this.isStarted || this.isPlayerInvulnerable) return;
 
-        this.lives -= 1;
-        this.scene.events.emit('livesChanged', this.lives);
-
-        const player = playerObj as Phaser.Physics.Arcade.Sprite;
+        const player = playerObj as Player;
         const enemy = enemyObj as Phaser.Physics.Arcade.Sprite;
+
+        player.takeDamage(this.damagePerHit);
+        this.scene.events.emit('playerHpChanged', { hp: player.hp, maxHp: player.maxHp });
 
         if (player && enemy && player.body) {
             const dx = player.x - enemy.x;
@@ -48,7 +49,7 @@ export class GameManager {
             player.clearTint();
         });
 
-        if(this.lives <= 0) {
+        if(player.hp <= 0) {
             this.scene.events.emit('gameOver');
             this.pauseGame();
         }

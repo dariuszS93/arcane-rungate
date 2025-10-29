@@ -56,7 +56,6 @@ export class GameScene extends Phaser.Scene {
     // @ts-ignore
     private background!: Phaser.GameObjects.TileSprite;
     private potions!: Phaser.Physics.Arcade.Group;
-    private playerHpBar!: Phaser.GameObjects.Graphics;
 
     constructor() {
         super({ key: 'GameScene' });
@@ -100,7 +99,6 @@ export class GameScene extends Phaser.Scene {
             this.player.setVelocity(0, 0);
             this.player.anims.play('idle', true);
         }
-        this.updatePlayerHpBar();
     }
 
     private initPotions() {
@@ -119,28 +117,11 @@ export class GameScene extends Phaser.Scene {
     private handlePotionPickup(potion: Phaser.GameObjects.GameObject) {
         potion.destroy();
         this.player.heal(20);
-        this.updatePlayerHpBar();
+        this.events.emit('playerHpChanged', { hp: this.player.hp, maxHp: this.player.maxHp });
     }
 
     private initPlayerHpBar() {
-        this.playerHpBar = this.add.graphics();
-        this.updatePlayerHpBar();
-    }
-
-    private updatePlayerHpBar() {
-        this.playerHpBar.clear();
-        const width = 200;
-        const height = 15;
-        const x = 20;
-        const y = 20;
-
-        const hpPercent = this.player.hp / this.player.maxHp;
-
-        this.playerHpBar.fillStyle(0x000000, 0.5);
-        this.playerHpBar.fillRect(x - 2, y - 2, width + 4, height + 4);
-
-        this.playerHpBar.fillStyle(0xff0000);
-        this.playerHpBar.fillRect(x, y, width * hpPercent, height);
+        this.events.emit('playerHpChanged', { hp: this.player.hp, maxHp: this.player.maxHp });
     }
 
     private initBackground() {
