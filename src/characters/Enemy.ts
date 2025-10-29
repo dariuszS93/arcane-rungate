@@ -51,6 +51,10 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
         this.hp = 50;
         this.maxHp = 50;
         this.healthBar = scene.add.graphics();
+
+        scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+            this.healthBar.destroy();
+        });
     }
 
     public update(_time: number, delta?: number): void {
