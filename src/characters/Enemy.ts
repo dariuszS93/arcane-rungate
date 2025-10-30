@@ -84,6 +84,16 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
         this.hp = Math.max(this.hp - amount, 0);
     }
 
+    applyKnockback(fromX: number, fromY: number, force: number) {
+        const dx = this.x - fromX;
+        const dy = this.y - fromY;
+        const angle = Math.atan2(dy, dx);
+        this.setVelocity(Math.cos(angle) * force, Math.sin(angle) * force);
+        this.scene.time.delayedCall(120, () => {
+            if (this.active) this.setVelocity(0);
+        })
+    }
+
     updateHealthBar() {
         this.healthBar.clear();
         const barWidth = 40;
