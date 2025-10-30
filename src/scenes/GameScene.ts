@@ -3,6 +3,7 @@ import { Enemy } from '../characters/Enemy';
 import Player from '../characters/Player';
 import { UIManager } from '../managers/UIManager';
 import { GameManager } from '../managers/GameManager';
+import { AttackSystem } from '../systems/AttackSystem';
 
 const PLAYER_SPAWN = { x: 150, y: 700 };
 
@@ -63,6 +64,7 @@ export class GameScene extends Phaser.Scene {
     private swords!: Phaser.Physics.Arcade.Group;
     // @ts-ignore
     private attackKey!: Phaser.Input.Keyboard.Key;
+    private attackSystem!: AttackSystem;
 
     constructor() {
         super({ key: 'GameScene' });
@@ -140,48 +142,8 @@ export class GameScene extends Phaser.Scene {
     }
 
     private initAttackEvents() {
-        this.events.on("playerAttack", (data: { px: number; py: number; dirX: number; dirY: number; length: number; thickness: number }) => {
-            if (!this.player.hasSword) return;
-            const enemies = this.enemies.getChildren() as Enemy[];
-
-            const enemyRadius = 20;
-            const margin = 2;
-            const sx = data.px;
-            const sy = data.py;
-            const ex = data.px + data.dirX * data.length;
-            const ey = data.py + data.dirY * data.length;
-
-            const vx = ex - sx;
-            const vy = ey - sy;
-            const segLenSq = vx * vx + vy * vy;
-
-            enemies.forEach(enemy => {
-                const dx = enemy.x - sx;
-                const dy = enemy.y - sy;
-
-                let t = segLenSq > 0 ? (dx * vx + dy * vy) / segLenSq : 0;
-                if (t < 0) t = 0;
-                if (t > 1) t = 1;
-
-                const nx = sx + vx * t;
-                const ny = sy + vy * t;
-
-                const dist = Math.hypot(enemy.x - nx, enemy.y - ny);
-
-                if (dist <= (data.thickness / 2 + enemyRadius + margin)) {
-                    enemy.takeDamage(10);
-                    enemy.applyKnockback(nx, ny, 200);
-                    if (enemy.hp <= 0) {
-                        enemy.destroy();
-                        enemy.healthBar.destroy();
-                    }
-                }
-            });
-        });
-
-        this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
-            this.events.off("playerAttack");
-        });
+        this.attackSystem = new AttackSystem(this, this.player, this.enemies);
+        this.attackSystem.register();
     }
 
     private initPotions() {
