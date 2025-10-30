@@ -3,6 +3,7 @@ import { Enemy } from '../characters/Enemy';
 import Player from '../characters/Player';
 import { UIManager } from '../managers/UIManager';
 import { GameManager } from '../managers/GameManager';
+import { AttackSystem } from '../systems/AttackSystem';
 
 const PLAYER_SPAWN = { x: 150, y: 700 };
 
@@ -44,6 +45,10 @@ const POTION_POSITIONS = [
     { x: 650, y: 150 }, { x: 1500, y: 100 }, { x: 1300, y: 600 }, { x: 1500, y: 900 }, { x: 750, y: 900 },
 ];
 
+const SWORD_POSITIONS = [
+    { x: 500, y: 500 },
+];
+
 export class GameScene extends Phaser.Scene {
     private player!: Player;
     private coins!: Phaser.Physics.Arcade.Group;
@@ -56,6 +61,10 @@ export class GameScene extends Phaser.Scene {
     // @ts-ignore
     private background!: Phaser.GameObjects.TileSprite;
     private potions!: Phaser.Physics.Arcade.Group;
+    private swords!: Phaser.Physics.Arcade.Group;
+    // @ts-ignore
+    private attackKey!: Phaser.Input.Keyboard.Key;
+    private attackSystem!: AttackSystem;
 
     constructor() {
         super({ key: 'GameScene' });
@@ -88,6 +97,9 @@ export class GameScene extends Phaser.Scene {
         this.initCollisions();
         this.setupAnimations();
         this.initUI();
+        this.initSwordPickup();
+        this.initAttackInput();
+        this.initAttackEvents();
     }
 
     update() {
@@ -95,10 +107,43 @@ export class GameScene extends Phaser.Scene {
             this.player.move(this.cursors, this.shiftKey);
             // @ts-ignore
             (this.enemies.getChildren() as Enemy[]).forEach(enemy => enemy.update());
+            if(Phaser.Input.Keyboard.JustDown(this.attackKey)) {
+                this.player.attack();
+            }
         } else {
             this.player.setVelocity(0, 0);
             this.player.anims.play('idle', true);
         }
+    }
+
+    private initSwordPickup() {
+        this.swords = this.physics.add.group();
+        SWORD_POSITIONS.forEach(pos => {
+            const sword = this.swords.create(pos.x, pos.y, 'world', 'fence') as Phaser.Physics.Arcade.Sprite;
+            sword.setTint(0xccccff);
+            sword.setScale(0.7);
+        });
+        this.physics.add.overlap(this.player, this.swords, (_p, swordObj) => {
+            const sword = swordObj as Phaser.Physics.Arcade.Sprite;
+            if (!this.player.hasSword) {
+                this.player.hasSword = true;
+                sword.destroy();
+                this.add.text(this.player.x, this.player.y - 50, 'Sword!', { fontSize: '14px', color: '#fff'})
+                    .setDepth(200)
+                    .setScrollFactor(0)
+                    .setAlpha(0);
+            }
+        })
+    }
+
+    private initAttackInput() {
+        // @ts-ignore
+        this.attackKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+    }
+
+    private initAttackEvents() {
+        this.attackSystem = new AttackSystem(this, this.player, this.enemies);
+        this.attackSystem.register();
     }
 
     private initPotions() {
