@@ -79,31 +79,33 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
         if (!this.canAttack()) return;
         this.isAttacking = true;
         this.lastAttackTime = this.scene.time.now;
-
         this.setTint(0xffdd55);
 
         const length = this.attackRange;
-        const thickness = 5;
+        const thickness = 8;
         const angle = Math.atan2(this.lastDirY, this.lastDirX);
         const cx = this.x + this.lastDirX * (length / 2);
         const cy = this.y + this.lastDirY * (length / 2);
 
-        const hx = this.x + this.lastDirX * length;
-        const hy = this.y + this.lastDirY * length;
-
         const swordRect = this.scene.add
             .rectangle(cx, cy, length, thickness, 0xffff66, 0.55)
             .setDepth(500)
-            .setRotation(angle);
+            .setRotation(angle)
+            .setStrokeStyle(2, 0xffee99, 0.85);
 
-        swordRect.setStrokeStyle(2, 0xffee99, 0.8);
-
-        this.scene.events.emit('playerAttack', { x: hx, y: hy });
+        this.scene.events.emit("playerAttack", {
+            px: this.x,
+            py: this.y,
+            dirX: this.lastDirX,
+            dirY: this.lastDirY,
+            length,
+            thickness
+        });
 
         this.scene.time.delayedCall(120, () => {
             swordRect.destroy();
             this.clearTint();
             this.isAttacking = false;
-        })
+        });
     }
 }

@@ -17,6 +17,8 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
     private wasBerserk = false;
     private chaseCooldown = 0;
     private patrolChangeTimer = 0;
+    private isKnockedBack = false;
+    private knockbackEndTime = 0;
 
     constructor(
         scene: Phaser.Scene,
@@ -59,6 +61,16 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
 
     public update(_time: number, delta?: number): void {
         this.updateHealthBar();
+
+        if (this.isKnockedBack) {
+            if (this.scene.time.now >= this.knockbackEndTime) {
+                this.isKnockedBack = false;
+                this.setVelocity(0, 0);
+            } else {
+                return;
+            }
+        }
+
         const dt = delta ?? 16;
         const isBerserk = !!this.gameManager?.isBerserk;
         const worldBounds = this.scene.physics.world.bounds;
@@ -89,9 +101,8 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite {
         const dy = this.y - fromY;
         const angle = Math.atan2(dy, dx);
         this.setVelocity(Math.cos(angle) * force, Math.sin(angle) * force);
-        this.scene.time.delayedCall(120, () => {
-            if (this.active) this.setVelocity(0);
-        })
+        this.isKnockedBack = true;
+        this.knockbackEndTime = this.scene.time.now + 250;
     }
 
     updateHealthBar() {

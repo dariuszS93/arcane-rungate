@@ -140,15 +140,38 @@ export class GameScene extends Phaser.Scene {
     }
 
     private initAttackEvents() {
-        this.events.on('playerAttack', (hitbox: Phaser.Physics.Arcade.Sprite) =>  {
+        this.events.on("playerAttack", (data: { px: number; py: number; dirX: number; dirY: number; length: number; thickness: number }) => {
             if (!this.player.hasSword) return;
             const enemies = this.enemies.getChildren() as Enemy[];
+
+            const enemyRadius = 20;
+            const margin = 2;
+            const sx = data.px;
+            const sy = data.py;
+            const ex = data.px + data.dirX * data.length;
+            const ey = data.py + data.dirY * data.length;
+
+            const vx = ex - sx;
+            const vy = ey - sy;
+            const segLenSq = vx * vx + vy * vy;
+
             enemies.forEach(enemy => {
-                const dist = Phaser.Math.Distance.Between(hitbox.x, hitbox.y, enemy.x, enemy.y);
-                if(dist <= 35) {
+                const dx = enemy.x - sx;
+                const dy = enemy.y - sy;
+
+                let t = segLenSq > 0 ? (dx * vx + dy * vy) / segLenSq : 0;
+                if (t < 0) t = 0;
+                if (t > 1) t = 1;
+
+                const nx = sx + vx * t;
+                const ny = sy + vy * t;
+
+                const dist = Math.hypot(enemy.x - nx, enemy.y - ny);
+
+                if (dist <= (data.thickness / 2 + enemyRadius + margin)) {
                     enemy.takeDamage(10);
-                    enemy.applyKnockback(hitbox.x, hitbox.y, 200);
-                    if(enemy.hp <= 0) {
+                    enemy.applyKnockback(nx, ny, 200);
+                    if (enemy.hp <= 0) {
                         enemy.destroy();
                         enemy.healthBar.destroy();
                     }
@@ -157,7 +180,7 @@ export class GameScene extends Phaser.Scene {
         });
 
         this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
-            this.events.off('playerAttack');
+            this.events.off("playerAttack");
         });
     }
 
