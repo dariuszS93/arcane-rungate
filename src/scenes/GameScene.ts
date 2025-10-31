@@ -4,50 +4,13 @@ import Player from '../characters/Player';
 import { UIManager } from '../managers/UIManager';
 import { GameManager } from '../managers/GameManager';
 import { AttackSystem } from '../systems/AttackSystem';
-
-const PLAYER_SPAWN = { x: 150, y: 700 };
-
-const TREE_POSITIONS = [
-    { x: 250, y: 200 }, { x: 350, y: 180 }, { x: 600, y: 220 }, { x: 850, y: 250 },
-    { x: 200, y: 500 }, { x: 300, y: 550 }, { x: 1800, y: 150 }, { x: 1650, y: 200 },
-    { x: 1550, y: 350 }, { x: 1450, y: 600 }, { x: 1700, y: 900 }, { x: 1400, y: 950 },
-    { x: 400, y: 950 }, { x: 700, y: 800 }, { x: 900, y: 750 },
-];
-
-const BUSHES_POSITIONS = [
-    { x: 500, y: 350 }, { x: 550, y: 420 }, { x: 850, y: 650 }, { x: 1100, y: 300 },
-    { x: 1350, y: 700 }, { x: 1600, y: 800 }, { x: 1750, y: 500 },
-    { x: 300, y: 750 }, { x: 550, y: 950 },
-];
-
-const ROCK_POSITIONS = [
-    { x: 100, y: 150 }, { x: 450, y: 150 }, { x: 1000, y: 450 }, { x: 1250, y: 200 },
-    { x: 1550, y: 450 }, { x: 1750, y: 300 }, { x: 1450, y: 800 }, { x: 950, y: 950 },
-    { x: 650, y: 700 }, { x: 300, y: 900 },
-];
-
-const LAKE_POSITION = { x: 800, y: 500 };
-
-const COIN_POSITIONS = [
-    { x: 250, y: 350 }, { x: 500, y: 200 }, { x: 750, y: 150 }, { x: 1000, y: 150 },
-    { x: 1250, y: 400 }, { x: 1450, y: 250 }, { x: 1700, y: 400 },
-    { x: 1750, y: 650 }, { x: 1500, y: 850 }, { x: 1200, y: 950 },
-    { x: 900, y: 900 }, { x: 650, y: 850 }, { x: 400, y: 800 },
-    { x: 350, y: 700 }, { x: 400, y: 500 },
-];
-
-const ENEMY_POSITIONS = [
-    { x: 600, y: 600 }, { x: 1300, y: 350 }, { x: 1500, y: 600 }, { x: 1300, y: 900 }, { x: 800, y: 300 },
-    { x: 400, y: 600 }, { x: 1500, y: 200 }, { x: 350, y: 350 }, { x: 1600, y: 950 }, { x: 1200, y: 650 },
-];
-
-const POTION_POSITIONS = [
-    { x: 650, y: 150 }, { x: 1500, y: 100 }, { x: 1300, y: 600 }, { x: 1500, y: 900 }, { x: 750, y: 900 },
-];
-
-const SWORD_POSITIONS = [
-    { x: 500, y: 500 },
-];
+import {
+    BUSHES_POSITIONS, COIN_POSITIONS, ENEMY_POSITIONS, LAKE_POSITION,
+    PLAYER_SPAWN,
+    POTION_POSITIONS, ROCK_POSITIONS,
+    SWORD_POSITIONS,
+    TREE_POSITIONS
+} from '../config/GameConfig';
 
 export class GameScene extends Phaser.Scene {
     private player!: Player;
